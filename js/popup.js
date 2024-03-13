@@ -247,7 +247,7 @@ function buildOutput() {
     let loadStatement = "";
     ({ fieldInfo, loadStatement } = extractLoadSection(fieldInfo));
     let fromTableStatement = "";
-    // Check if the keywords Resident or From (case insensitive) are matched and not preceded directly by AS or a comma. This indicates it's a Table Load, not a field
+    // Check if the keywords Resident, From or Autogenerate (case insensitive) are matched and not preceded directly by AS or a comma. This indicates it's a Table Load, not a field
     ({ fieldInfo, fromTableStatement } = extractFromSection(fieldInfo));
     // Split the string into an array for each line break, trim records, then remove empty rows
     let fieldArray = fieldInfo
@@ -269,7 +269,7 @@ function buildOutput() {
     })); // Add the Fields
     if (fromTableStatement.length > 0) {
         fieldsOutput.push(fromTableStatement);
-    } // Add the From/Resident after the fields
+    } // Add the From/Resident/Autogenerate after the fields
     // Transform the array into a string with linebreaks between each record
     return fieldsOutput.join("\r\n");
     function parseInputForFields(pFieldArray, pMaxFieldLen) {
@@ -323,7 +323,7 @@ function fieldArrayObjectToArrayOfString(pFieldArrayObject) {
     return fieldArrayStrings;
 }
 function extractFromSection(pFieldInfo) {
-    const SOURCE_TABLE_INDEX = pFieldInfo.search(/\w*(?<!((as)|,)\s*)(?<!\["`)(From|Resident)\b(?![\w\s]*[\]"`])/gsi);
+    const SOURCE_TABLE_INDEX = pFieldInfo.search(/\w*(?<!((as)|,)\s*)(?<!\["`)(From|Resident|Autogenerate)\b(?![\w\s]*[\]"`])/gsi);
     let fromTableStatement = "";
     if (SOURCE_TABLE_INDEX > -1) {
         fromTableStatement = pFieldInfo.slice(SOURCE_TABLE_INDEX).trimEnd(); // Take everyting up to the Load word
@@ -391,8 +391,10 @@ function storeOutputToClipboard(newClip) {
  */
 function AddFieldDelimiter(pInputField) {
     return userSettings.fieldDelimiter === 'sb'
-        ? "[" + pInputField + "]"
-        : '"' + pInputField + '"';
+        ? "[" + pInputField + "]" :
+        userSettings.fieldDelimiter === 'dq'
+        ? '"' + pInputField + '"'
+        : pInputField;
 }
 /**
  * Function to insert a comma to a value at the leftmost or rightmost side.
